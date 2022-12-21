@@ -14,7 +14,9 @@
   "license": "ISC",
   "homepage": "https://github.com/meharshjain/todo#readme",
   "dependencies": {
-    "express": "^4.18.1"
+    "connect-mongodb-session": "^2.4.1",
+    "express": "^4.18.1",
+    "mongoose": "^5.8.13"
   },
   "bugs": {
     "url": "https://github.com/meharshjain/todo/issues"
