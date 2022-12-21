@@ -19,7 +19,7 @@ app.use(session({
     key:"connect.mongodb.session",
     secret:"sessionSecret",
     store: new MongoStore({
-        uri: db.conn.connectionUri,
+        uri: connectionString,
         connectionOptions: {
           domainsEnabled: true,
           useNewUrlParser: true,
