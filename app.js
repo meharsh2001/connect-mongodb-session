@@ -5,14 +5,18 @@ var express         =require("express"),
     mongoose        =require("mongoose"),
     session         =require("express-session"),
     MongoStore = require("connect-mongodb-session")(session),
-    dotenv =require('dotenv').config();
-
-var connectionString=process.env.db;
+    fs = require('fs'),
+    dotenv =require('dotenv').config(),database,
+    connectionString=process.env.db2;
 
 mongoose.createConnection(connectionString,{
     domainsEnabled: true,
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    ssl: true,
+    sslValidate: false,
+    sslCA: `${__dirname}/certs/tlsca.pem`,
+    sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`),
   }).then(function(connection) {
     this.connection = connection;
     this.connection.connectionUri = connectionString;
@@ -23,10 +27,10 @@ mongoose.createConnection(connectionString,{
     this.connection.db.command({ buildInfo: 1 }, (error, info) => {
       if (error) {
         console.log(error);
-      } else {
-        console.log("success");
-        this.mongoVersion = info.version;
       } 
+      this.mongoVersion = info.version;
+      database = this;
+      console.log("success");
     });
   }.bind(this));
  
@@ -36,7 +40,11 @@ var store = new MongoStore({
     connectionOptions: {
       domainsEnabled: false,
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      ssl: true,
+      sslValidate: false,
+      sslCA: `${__dirname}/certs/tlsca.pem`,
+      sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`),
     }
   });
 store.on('error', function(error) {
@@ -56,11 +64,10 @@ app.use(session({
 
 app.use(function(req,res,next){
     var serverDomain = domain.create();
-    serverDomain.add(req);
-    serverDomain.add(res);
     serverDomain.session = req.session;
-    serverDomain.on('error',next);
-    serverDomain.run(next);
+    serverDomain.run(function () {
+        next()
+      });
 })
 
 //HOME
