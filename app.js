@@ -4,33 +4,51 @@ var express         =require("express"),
     domain          =require('domain'),
     mongoose        =require("mongoose"),
     session         =require("express-session"),
-    MongoStore = require("connect-mongodb-session")(session),
-    connectionString="mongodb://localhost:27017/connect-mongodb-session"
+    MongoStore = require("connect-mongodb-session")(session)
+
+var connectionString='mongodb+srv://admin:admin@cluster0.40wxdkw.mongodb.net/?retryWrites=true&w=majority';
 
 mongoose.createConnection(connectionString,{
     domainsEnabled: true,
     useNewUrlParser: true,
     useUnifiedTopology: true
-}).then(function(connect){
-    console.log("success")
-}.bind(this)); 
-
+  }).then(function(connection) {
+    this.connection = connection;
+    this.connection.connectionUri = connectionString;
+    this.connection.on('error', function(err){ console.log(err); });
+    this.connection.once('error', function(err){ console.log(err); }); 
+    this.updatedAt = new Date();
+    this._models = {};
+    this.connection.db.command({ buildInfo: 1 }, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("success");
+        this.mongoVersion = info.version;
+      } 
+    });
+  }.bind(this));
+ 
+var store = new MongoStore({
+    uri: connectionString,
+    collection: 'sessions',
+    connectionOptions: {
+      domainsEnabled: false,
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    }
+  });
+store.on('error', function(error) {
+    console.log(error);
+  });
+  
 app.use(session({
-    key:"connect.mongodb.session",
     secret:"sessionSecret",
-    store: new MongoStore({
-        uri: connectionString,
-        connectionOptions: {
-          domainsEnabled: true,
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        }
-      }),
-      resave: true,
+    store: store,
       cookie: {
-        signed: true,
-        secureProxy: false,
+        maxAge: 1000 * 60 * 60 // 1 hr
       },
+      resave: true,
       saveUninitialized: true,
     }),
   );
@@ -39,15 +57,14 @@ app.use(function(req,res,next){
     var serverDomain = domain.create();
     serverDomain.add(req);
     serverDomain.add(res);
-    serverDomain.sesssion = req.sesssion;
+    serverDomain.session = req.session;
     serverDomain.on('error',next);
     serverDomain.run(next);
 })
 
 //HOME
-app.get("/",function(req,res)
-{   
-    console.log('home')
+app.get('/', function(req, res) {
+  res.send('Hello <br>'+ JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
 });
 
 app.listen(port,function()
