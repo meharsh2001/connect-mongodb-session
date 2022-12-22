@@ -60,6 +60,15 @@ app.get('/', function (req, res) {
   res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
 });
 
+//shouldStayInCorrectDomainForReadCommand
+app.get('/read', function (req, res) {
+  var domain = process.domain;
+  var collection = db.collection('sessions');
+  collection.count({}, function (err, data) {
+    db.close(function () { console.log('connection closed with data:', data) });
+  });
+  res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
+});
 app.listen(port, function () {
   console.log("http://localhost:" + port + "/");
 });
