@@ -4,9 +4,10 @@ var express         =require("express"),
     domain          =require('domain'),
     mongoose        =require("mongoose"),
     session         =require("express-session"),
-    MongoStore = require("connect-mongodb-session")(session)
+    MongoStore = require("connect-mongodb-session")(session),
+    dotenv =require('dotenv').config();
 
-var connectionString='mongodb+srv://admin:admin@cluster0.40wxdkw.mongodb.net/?retryWrites=true&w=majority';
+var connectionString=process.env.db;
 
 mongoose.createConnection(connectionString,{
     domainsEnabled: true,
@@ -46,7 +47,7 @@ app.use(session({
     secret:"sessionSecret",
     store: store,
       cookie: {
-        maxAge: 1000 * 60 * 60 // 1 hr
+        maxAge: 1000
       },
       resave: true,
       saveUninitialized: true,
