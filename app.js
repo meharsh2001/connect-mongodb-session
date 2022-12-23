@@ -79,7 +79,7 @@ app.get('/read', function (req, res) {
 //shouldStayInCorrectDomainForWriteCommand
 app.get('/write', function (req, res) {
   var collection = db.collection('sessions');
-  collection.insert({ field: 123 }, function (err, data) {
+  collection.insertOne({ field: 123 }, function (err, data) {
     res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
     db.close(function () { console.log(req.url,'connection closed with data:', data.insertedId) });
     serverDomain.exit();
