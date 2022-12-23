@@ -70,10 +70,12 @@ app.get('/read', function (req, res) {
     if (err) { console.log(err) };
     if (process.domain === domain) { console.log("same domain") };
     if (process.domain !== domain) { console.log("not in same domain", process.domain.req.url) };
+    res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
     db.close(function () { console.log(req.url,'connection closed with data:', data) });
     serverDomain.exit();
   });
-  res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
+});
+
 });
 
 app.listen(port, function () {
