@@ -43,16 +43,17 @@ app.use(function (req, res, next) {
   serverDomain = require('domain').create();
   db = mongoose.createConnection(connectionString,connectionOption);
   db.on("error", function (err) { console.log(err) });
-  db.on("connected", function () { console.log(req.url,"connection connected") });
-  serverDomain.session = req.session;
-  serverDomain.run(function () {
-    process.domain.add(req)
-    process.domain.add(res)
-    process.domain.enter()
-    process.domain.req = req;
-    process.domain.res = res;
-    process.domain.session = req.session;
-    next()
+  db.on("connected", function () { 
+    console.log(req.url,"connection connected") 
+    serverDomain.session = req.session;
+    serverDomain.run(function () {
+      process.domain.add(req)
+      process.domain.add(res)
+      process.domain.req = req;
+      process.domain.res = res;
+      process.domain.session = req.session;
+      next()
+    });
   });
 })
 
