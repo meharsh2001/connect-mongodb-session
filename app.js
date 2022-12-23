@@ -76,6 +76,8 @@ app.get('/read', function (req, res) {
   });
 });
 
+//shouldStayInCorrectDomainForWriteCommand
+app.get('/write', function (req, res) {
 });
 
 app.listen(port, function () {
