@@ -7,7 +7,7 @@ var express = require("express"),
   fs = require('fs'),
   dotenv = require('dotenv').config(), db, serverDomain,
   connectionOption = {
-    domainsEnabled: true,
+    domainsEnabled: false,
     useNewUrlParser: true,
     useUnifiedTopology: true,
     ssl: true,
@@ -44,7 +44,7 @@ app.use(function (req, res, next) {
   db = mongoose.createConnection(connectionString,connectionOption);
   db.on("error", function (err) { console.log(err) });
   db.on("connected", function () { 
-    console.log(req.url,"connection connected") 
+    print(req.url,"connection connected") 
     serverDomain.session = req.session;
     serverDomain.run(function () {
       process.domain.add(req)
@@ -59,7 +59,7 @@ app.use(function (req, res, next) {
 
 //session
 app.get('/', function (req, res) {
-  db.close(function () { console.log(req.url,'connection closed') });
+  db.close(function () { print(req.url,'connection closed') });
   serverDomain.exit();
   res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
 });
@@ -70,12 +70,12 @@ app.get('/read', function (req, res) {
   var collection = db.collection('sessions');
   collection.countDocuments({}, function (err, data) {
     if (err) { console.log(err) };
-    if (process.domain === domain) { console.log("same domain") };
+    if (process.domain === domain) { print(req.url,"same domain") };
     try { 
-      if (process.domain !== domain && domain.req.url) { console.log("not in same domain", process.domain.req.url) };
-    } catch (e) {console.log(req.url,"domain not found") }
+      if (process.domain !== domain && domain.req.url) { print(process.domain.req.url,"not in same domain") };
+    } catch (e) {print(req.url,"domain not found",data) }
       res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
-    db.close(function () { console.log(req.url,'connection closed with data:', data) });
+    db.close(function () { print(req.url,'connection closed with data:', data) });
     serverDomain.exit();
   });
 });
@@ -85,10 +85,18 @@ app.get('/write', function (req, res) {
   var collection = db.collection('sessions');
   collection.insertOne({ field: 123 }, function (err, data) {
     res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
-    db.close(function () { console.log(req.url,'connection closed with data:', data.insertedId) });
+    db.close(function () { print(req.url,'connection closed with data:', data.insertedId) });
     serverDomain.exit();
   });
 });
+
+function print(currentUrl,message,outputData){
+  console.log(JSON.stringify({
+    URL : currentUrl,
+    MESSAGE : message,
+    DATA : outputData
+  }));
+}
 
 app.listen(port, function () {
   console.log("http://localhost:" + port + "/");
