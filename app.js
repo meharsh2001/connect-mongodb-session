@@ -14,7 +14,7 @@ var store = new MongoStore({
   databaseName: 'connect_mongodb_session_test',
   collection: 'sessions',
   connectionOptions: {
-    domainsEnabled: false,
+    domainsEnabled: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
     ssl: true,
@@ -66,7 +66,7 @@ app.get('/', function (req, res) {
 app.get('/read', function (req, res) {
   var domain = process.domain;
   var collection = db.collection('sessions');
-  collection.count({}, function (err, data) {
+  collection.countDocuments({}, function (err, data) {
     if (err) { console.log(err) };
     if (process.domain === domain) { console.log("same domain") };
     if (process.domain !== domain) { console.log("not in same domain", process.domain.req.url) };
@@ -78,6 +78,12 @@ app.get('/read', function (req, res) {
 
 //shouldStayInCorrectDomainForWriteCommand
 app.get('/write', function (req, res) {
+  var collection = db.collection('sessions');
+  collection.insert({ field: 123 }, function (err, data) {
+    res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
+    db.close(function () { console.log(req.url,'connection closed with data:', data.insertedId) });
+    serverDomain.exit();
+  });
 });
 
 app.listen(port, function () {
