@@ -13,7 +13,7 @@ var express = require("express"),
     ssl: true,
     sslValidate: false,
     sslCA: `${__dirname}/certs/tlsca.pem`,
-    sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`) 
+    sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`)
   },
   connectionString = process.env.db2;
 
@@ -41,10 +41,10 @@ app.use(session({
 //creating domain and creating db connection
 app.use(function (req, res, next) {
   serverDomain = require('domain').create();
-  db = mongoose.createConnection(connectionString,connectionOption);
+  db = mongoose.createConnection(connectionString, connectionOption);
   db.on("error", function (err) { console.log(err) });
-  db.on("connected", function () { 
-    print(req.url,"connection connected") 
+  db.on("connected", function () {
+    print(req.url, "connection connected")
     serverDomain.session = req.session;
     serverDomain.run(function () {
       process.domain.add(req)
@@ -59,7 +59,7 @@ app.use(function (req, res, next) {
 
 //session
 app.get('/', function (req, res) {
-  db.close(function () { print(req.url,'connection closed') });
+  db.close(function () { print(req.url, 'connection closed') });
   serverDomain.exit();
   res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
 });
@@ -90,11 +90,23 @@ app.get('/write', function (req, res) {
   });
 });
 
-function print(currentUrl,message,outputData){
+function domainCheck(req, res, currentDomain, data, cb) {
+  try {
+    if (serverDomain === currentDomain) { print(req.url, "same domain") };
+    if (serverDomain !== currentDomain && currentDomain.req.url) {
+      print(currentDomain.req.url, "not in same domain")
+    };
+  } catch (e) {
+    print(req.url, "domain not found", data)
+  }
+  return cb();
+}
+
+function print(currentUrl, message, outputData) {
   console.log(JSON.stringify({
-    URL : currentUrl,
-    MESSAGE : message,
-    DATA : outputData
+    URL: currentUrl,
+    MESSAGE: message,
+    DATA: outputData
   }));
 }
 
