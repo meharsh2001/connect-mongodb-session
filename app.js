@@ -13,7 +13,7 @@ var express = require("express"),
     ssl: true,
     sslValidate: false,
     sslCA: `${__dirname}/certs/tlsca.pem`,
-    sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`) 
+    sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`)
   },
   connectionString = process.env.db2;
 
