@@ -66,18 +66,23 @@ app.get('/', function (req, res) {
 
 //shouldStayInCorrectDomainForReadCommand
 app.get('/read', function (req, res) {
-  var domain = process.domain;
-  var collection = db.collection('sessions');
-  collection.countDocuments({}, function (err, data) {
-    if (err) { console.log(err) };
-    if (process.domain === domain) { print(req.url,"same domain") };
-    try { 
-      if (process.domain !== domain && domain.req.url) { print(process.domain.req.url,"not in same domain") };
-    } catch (e) {print(req.url,"domain not found",data) }
-      res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
-    db.close(function () { print(req.url,'connection closed with data:', data) });
-    serverDomain.exit();
-  });
+  print(req.url, "----------------------read started----------------------");
+  console.log("-----domain check before read-----");
+  domainCheck(req, res, process.domain, null, function () {
+    var collection = db.collection('sessions');
+    collection.countDocuments({}, function (err, data) {
+      if (err) { console.log(err) };
+      console.log("-----domain check after read-----");
+      domainCheck(req, res, process.domain, data, function () {
+        res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
+        db.close(function () {
+          print(req.url, 'connection closed with data:', data);
+          print(req.url, "----------------------read ended----------------------");
+        });
+        serverDomain.exit();
+      });
+    });
+  })
 });
 
 //shouldStayInCorrectDomainForWriteCommand
