@@ -6,6 +6,15 @@ var express = require("express"),
   MongoStore = require("connect-mongodb-session")(session),
   fs = require('fs'),
   dotenv = require('dotenv').config(), db, serverDomain,
+  connectionOption = {
+    domainsEnabled: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    ssl: true,
+    sslValidate: false,
+    sslCA: `${__dirname}/certs/tlsca.pem`,
+    sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`) 
+  },
   connectionString = process.env.db2;
 
 //session create
@@ -13,15 +22,7 @@ var store = new MongoStore({
   uri: connectionString,
   databaseName: 'connect_mongodb_session_test',
   collection: 'sessions',
-  connectionOptions: {
-    domainsEnabled: true,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    ssl: true,
-    sslValidate: false,
-    sslCA: `${__dirname}/certs/tlsca.pem`,
-    sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`),
-  }
+  connectionOptions: connectionOption
 });
 store.on('error', function (error) {
   console.log(error);
@@ -40,7 +41,7 @@ app.use(session({
 //creating domain and creating db connection
 app.use(function (req, res, next) {
   serverDomain = require('domain').create();
-  db = mongoose.createConnection(connectionString, { domainsEnabled: true, useNewUrlParser: true, useUnifiedTopology: true, ssl: true, sslValidate: false, sslCA: `${__dirname}/certs/tlsca.pem`, sslKey: fs.readFileSync(`${__dirname}/certs/tlsckf.pem`) });
+  db = mongoose.createConnection(connectionString,connectionOption);
   db.on("error", function (err) { console.log(err) });
   db.on("connected", function () { console.log(req.url,"connection connected") });
   serverDomain.session = req.session;
@@ -69,8 +70,10 @@ app.get('/read', function (req, res) {
   collection.countDocuments({}, function (err, data) {
     if (err) { console.log(err) };
     if (process.domain === domain) { console.log("same domain") };
-    if (process.domain !== domain) { console.log("not in same domain", process.domain.req.url) };
-    res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
+    try { 
+      if (process.domain !== domain && domain.req.url) { console.log("not in same domain", process.domain.req.url) };
+    } catch (e) {console.log(req.url,"domain not found") }
+      res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
     db.close(function () { console.log(req.url,'connection closed with data:', data) });
     serverDomain.exit();
   });
