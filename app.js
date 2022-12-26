@@ -44,7 +44,7 @@ app.use(function (req, res, next) {
   db = mongoose.createConnection(connectionString, connectionOption);
   db.on("error", function (err) { console.log(err) });
   db.on("connected", function () {
-    print(req.url, "connection connected")
+    print(req.url, "url called ----connection started")
     serverDomain.session = req.session;
     serverDomain.run(function () {
       process.domain.add(req)
@@ -59,14 +59,15 @@ app.use(function (req, res, next) {
 
 //session
 app.get('/', function (req, res) {
+  //res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
+  res.redirect("/read");
   db.close(function () { print(req.url, 'connection closed') });
   serverDomain.exit();
-  res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
 });
 
 //shouldStayInCorrectDomainForReadCommand
 app.get('/read', function (req, res) {
-  print(req.url, "----------------------read started----------------------");
+  console.log("----------------------read started----------------------");
   console.log("-----domain check before read-----");
   domainCheck(req, res, process.domain, null, function () {
     var collection = db.collection('sessions');
@@ -74,15 +75,16 @@ app.get('/read', function (req, res) {
       if (err) { console.log(err) };
       console.log("-----domain check after read-----");
       domainCheck(req, res, process.domain, data, function () {
-        res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
+        res.redirect("/write");
+        //res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
         db.close(function () {
           print(req.url, 'connection closed with data:', data);
-          print(req.url, "----------------------read ended----------------------");
+          console.log("----------------------read ended----------------------");
         });
         serverDomain.exit();
       });
     });
-  })
+  });
 });
 
 //shouldStayInCorrectDomainForWriteCommand
