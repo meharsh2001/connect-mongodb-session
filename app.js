@@ -117,12 +117,14 @@ app.get('/response', function (req, res) {
 
 function domainCheck(req, res, currentDomain, data, cb) {
   try {
-    if (serverDomain === currentDomain) { print(req.url, "same domain") };
+    if (serverDomain === currentDomain) { 
+      print(req.url, "same domain", data);
+    };
     if (serverDomain !== currentDomain && currentDomain.req.url) {
       print(currentDomain.req.url, "not in same domain")
     };
   } catch (e) {
-    print(req.url, "domain not found", data)
+    print(req.url, "domain not found", data);
   }
   return cb();
 }
