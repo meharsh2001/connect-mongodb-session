@@ -89,10 +89,17 @@ app.get('/read', function (req, res) {
 
 //shouldStayInCorrectDomainForWriteCommand
 app.get('/write', function (req, res) {
+  console.log("----------------------write started----------------------");
+  console.log("-----domain check before write-----");
   var collection = db.collection('sessions');
   collection.insertOne({ field: 123 }, function (err, data) {
+    if (err) { console.log(err) };
+    console.log("-----domain check after write-----");
     res.send('Hello <br>' + JSON.stringify(req.session.id) + '<br>' + JSON.stringify(req.session));
-    db.close(function () { print(req.url,'connection closed with data:', data.insertedId) });
+    db.close(function () {
+      print(req.url, 'connection closed with data:', data.insertedId);
+      console.log("----------------------write ended----------------------");
+    });
     serverDomain.exit();
   });
 });
