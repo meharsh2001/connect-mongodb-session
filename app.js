@@ -44,7 +44,7 @@ app.use(function (req, res, next) {
   db = mongoose.createConnection(connectionString, connectionOption);
   db.on("error", function (err) { console.log(err) });
   db.on("connected", function () {
-    print(req.url, "url called ----connection started " + "domainsEnabled:" + connectionOption.domainsEnabled);
+    print(req.url, "connection started");
     serverDomain.session = req.session;
     serverDomain.run(function () {
       process.domain.add(req)
@@ -52,7 +52,11 @@ app.use(function (req, res, next) {
       process.domain.req = req;
       process.domain.res = res;
       process.domain.session = req.session;
-      next()
+      process.domain.session.user = {
+        id: 123,
+        userid: "test"
+      };
+      domainCheck(req, res, process.domain, null, next);
     });
   });
 })
@@ -66,9 +70,6 @@ app.get('/', function (req, res) {
 
 //shouldStayInCorrectDomainForReadCommand
 app.get('/read', function (req, res) {
-  console.log("----------------------read started----------------------");
-  console.log("-----domain check before read-----");
-  domainCheck(req, res, process.domain, null, function () {
     var collection = db.collection('sessions');
     collection.countDocuments({}, function (err, data) {
       if (err) { console.log(err) };
@@ -77,19 +78,14 @@ app.get('/read', function (req, res) {
         res.redirect("/write");
         db.close(function () {
           print(req.url, 'connection closed with data:', data);
-          console.log("----------------------read ended----------------------");
         });
         serverDomain.exit();
       });
     });
-  });
 });
 
 //shouldStayInCorrectDomainForWriteCommand
 app.get('/write', function (req, res) {
-  console.log("----------------------write started----------------------");
-  console.log("-----domain check before write-----");
-  domainCheck(req, res, process.domain, null, function () {
     var collection = db.collection('sessions');
     collection.insertOne({ field: 123 }, function (err, data) {
       if (err) { console.log(err) };
@@ -98,12 +94,10 @@ app.get('/write', function (req, res) {
         res.redirect('/response');
         db.close(function () {
           print(req.url, 'connection closed with data:', data.insertedId);
-          console.log("----------------------write ended----------------------");
         });
         serverDomain.exit();
       });
     });
-  });
 });
 
 app.get('/response', function (req, res) {
@@ -138,5 +132,5 @@ function print(currentUrl, message, outputData) {
 }
 
 app.listen(port, function () {
-  console.log("http://localhost:" + port + "/");
+  console.log("domainsEnabled:" + connectionOption.domainsEnabled + "  http://localhost:" + port + "/");
 });
