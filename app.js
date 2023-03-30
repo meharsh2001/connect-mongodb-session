@@ -49,7 +49,6 @@ app.use(function (req, res, next) {
     console.log(err);
   });
   db.on("connected", function () {
-    print(req.url, "connection started");
     serverDomain.session = req.session;
     serverDomain.run(function () {
       process.domain.add(req);
@@ -61,7 +60,7 @@ app.use(function (req, res, next) {
         id: 123,
         userid: "test",
       };
-      domainCheck(req, res, process.domain, null, next);
+      domainCheck(req, process.domain, "onvisit", next);
     });
   });
 });
@@ -69,9 +68,7 @@ app.use(function (req, res, next) {
 //session
 app.get("/", function (req, res) {
   res.redirect("/read");
-  db.close(function () {
-    print(req.url, "connection closed");
-  });
+  db.close();
   serverDomain.exit();
 });
 
@@ -82,12 +79,9 @@ app.get("/read", function (req, res) {
     if (err) {
       console.log(err);
     }
-    console.log("-----domain check after read-----");
-    domainCheck(req, res, process.domain, data, function () {
+    domainCheck(req, process.domain, data, function () {
       res.redirect("/write");
-      db.close(function () {
-        print(req.url, "connection closed with data:", data);
-      });
+      db.close();
       serverDomain.exit();
     });
   });
@@ -100,12 +94,9 @@ app.get("/write", function (req, res) {
     if (err) {
       console.log(err);
     }
-    console.log("-----domain check after write-----");
-    domainCheck(req, res, process.domain, data.insertedId, function () {
+    domainCheck(req, process.domain, data.insertedId, function () {
       res.redirect("/response");
-      db.close(function () {
-        print(req.url, "connection closed with data:", data.insertedId);
-      });
+      db.close();
       serverDomain.exit();
     });
   });
@@ -121,20 +112,31 @@ app.get("/response", function (req, res) {
     );
   else {
     connectionOption.domainsEnabled = true;
+    console.log("");
+    console.log(
+      "domainsEnabled:" +
+        connectionOption.domainsEnabled +
+        "  http://localhost:" +
+        port +
+        "/"
+    );
     res.redirect("/");
   }
 });
 
-function domainCheck(req, res, currentDomain, data, cb) {
-  try {
-    if (serverDomain === currentDomain) {
-      print(req.url, "same domain", data);
-    }
-    if (serverDomain !== currentDomain && currentDomain.req.url) {
-      print(currentDomain.req.url, "not in same domain");
-    }
-  } catch (e) {
-    print(req.url, "domain not found", data);
+function domainCheck(req, currentDomain, data, cb) {
+  if (serverDomain === currentDomain) {
+    print(req.url, "same domain", data);
+  }
+  if (!currentDomain) {
+    print(req.url, "domain not exist", data);
+  }
+  if (
+    currentDomain &&
+    serverDomain !== currentDomain &&
+    currentDomain.req.url
+  ) {
+    print(currentDomain.req.url, "domain not matched");
   }
   return cb();
 }
@@ -150,6 +152,7 @@ function print(currentUrl, message, outputData) {
 }
 
 app.listen(port, function () {
+  console.log("");
   console.log(
     "domainsEnabled:" +
       connectionOption.domainsEnabled +
