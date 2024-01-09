@@ -1,5 +1,5 @@
 {
-  "name": "todo",
+  "name": "connect-monogdb-session",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -8,11 +8,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meharshjain/todo.git"
+    "url": "git+https://github.com/meharsh2001/connect-mongodb-session.git"
   },
   "author": "",
   "license": "ISC",
-  "homepage": "https://github.com/meharshjain/todo#readme",
+  "homepage": "https://github.com/meharsh2001/connect-mongodb-session#readme",
   "dependencies": {
     "connect-mongodb-session": "^2.4.1",
     "dotenv": "^16.0.3",
@@ -21,7 +21,7 @@
     "mongoose": "^5.8.13"
   },
   "bugs": {
-    "url": "https://github.com/meharshjain/todo/issues"
+    "url": "https://github.com/meharsh2001/connect-mongodb-session/issues"
   },
   "description": ""
 }
